@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title><%= title %></title>
+    <link rel='stylesheet' href='/stylesheets/style.css' />
+  </head>
+  <body>
+    <!--<h1><%= title %></h1>-->
+    <!--<p>Welcome to <%= title %></p>-->
+  </body>
+  <script src="/javascripts/jquery-2.2.4.min.js"></script>
+  <script src="/javascripts/jquery-ui.min.js"></script>
+  <script src="/javascripts/three.min.js"></script>
+  <script src="/javascripts/OrbitControls.js"></script>
+
+  <script>
+    var scene = new THREE.Scene();
+
+    var camera = new THREE.PerspectiveCamera( 75, window.innerWidth/window.innerHeight, 0.1, 10000 );
+    var renderer = new THREE.WebGLRenderer();
+    renderer.setSize( window.innerWidth, window.innerHeight);
+    document.body.appendChild( renderer.domElement );
+    camera.position.z = 100;
+
+    var orbit = new THREE.OrbitControls( camera, renderer.domElement );
+    orbit.enableZoom = true;
+
+//    drawCubic();
+//    trackMouseMove();
+    dot = null;
+    genAxis(scene);
+    locCubic(scene,camera);
+
+    var render = function () {
+      requestAnimationFrame( render );
+      renderer.render(scene, camera);
+    };
+
+    render();
+
+    function locCubic(scene,camera){
+      var raycaster = new THREE.Raycaster();
+      var mouse = new THREE.Vector2();
+
+      $(document).click(function(event){
+        mouse.x = ( event.clientX / window.innerWidth ) * 2 - 1;
+        mouse.y = - ( event.clientY / window.innerHeight ) * 2 + 1;
+
+        // update the picking ray with the camera and mouse position
+        raycaster.setFromCamera( mouse, camera );
+
+        // calculate objects intersecting the picking ray
+        /*
+         distance – distance between the origin of the ray and the intersection
+         point – point of intersection, in world coordinates
+         face – intersected face
+         faceIndex – index of the intersected face
+         indices – indices of vertices comprising the intersected face
+         object – the intersected object
+         */
+        var intersects = raycaster.intersectObjects( scene.children );
+        if(intersects.length >0){
+
+          dot.position.copy(intersects[0].point);
+          buildHandler(intersects[0]);
+
+        }
+
+//        intersects[ 0 ].object.material.color.set( 0xffffff );
+//
+//        for ( var i = 0; i < intersects.length; i++ ) {
+//
+//
+//        }
+
+        renderer.render( scene, camera );
+      });
+    }
+
+    //// HANDLES AND PICKERS
+
+    var setupGizmos = function( gizmoMap, parent ) {
+
+      for ( var name in gizmoMap ) {
+
+        for ( i = gizmoMap[ name ].length; i --; ) {
+
+          var object = gizmoMap[ name ][ i ][ 0 ];
+          var position = gizmoMap[ name ][ i ][ 1 ];
+          var rotation = gizmoMap[ name ][ i ][ 2 ];
+
+          object.name = name;
+
+          if ( position ) object.position.set( position[ 0 ], position[ 1 ], position[ 2 ] );
+          if ( rotation ) object.rotation.set( rotation[ 0 ], rotation[ 1 ], rotation[ 2 ] );
+
+          parent.add( object );
+
+        }
+
+      }
+
+    };
+
+    function buildHandler(intersect){
+
+      var elem = new THREE.Object3D();
+      elem.position.copy(intersect.point);
+      var arrowGeometry = new THREE.Geometry();
+      var mesh = new THREE.Mesh( new THREE.BoxGeometry( 1.25, 1.25, 1.25 ) );
+      mesh.position.y = 0.5;
+      mesh.updateMatrix();
+
+      arrowGeometry.merge( mesh.geometry, mesh.matrix );
+
+      var lineXGeometry = new THREE.BufferGeometry();
+      lineXGeometry.addAttribute( 'position', new THREE.Float32Attribute( [ 0, 0, 0,  5, 0, 0 ], 9 ) );
+
+      var lineYGeometry = new THREE.BufferGeometry();
+      lineYGeometry.addAttribute( 'position', new THREE.Float32Attribute( [ 0, 0, 0,  0, 5, 0 ], 9 ) );
+
+      var lineZGeometry = new THREE.BufferGeometry();
+      lineZGeometry.addAttribute( 'position', new THREE.Float32Attribute( [ 0, 0, 0,  0, 0, 5 ], 9 ) );
+
+      var handleGizmos = {
+
+        X: [
+          [ new THREE.Mesh( arrowGeometry, new THREE.MeshBasicMaterial( { color: 0xff0000 } ) ), [ 0.5, 0, 0 ], [ 0, 0, - Math.PI / 2 ] ],
+          [ new THREE.Line( lineXGeometry, new THREE.LineBasicMaterial( { color: 0xff0000 } ) ) ]
+        ],
+
+        Y: [
+          [ new THREE.Mesh( arrowGeometry, new THREE.MeshBasicMaterial( { color: 0x00ff00 } ) ), [ 0, 0.5, 0 ] ],
+          [ new THREE.Line( lineYGeometry, new THREE.LineBasicMaterial( { color: 0x00ff00 } ) ) ]
+        ],
+
+        Z: [
+          [ new THREE.Mesh( arrowGeometry, new THREE.MeshBasicMaterial( { color: 0x0000ff } ) ), [ 0, 0, 0.5 ], [ Math.PI / 2, 0, 0 ] ],
+          [ new THREE.Line( lineZGeometry, new THREE.LineBasicMaterial( { color: 0x0000ff } ) ) ]
+        ],
+
+        XYZ: [
+          [ new THREE.Mesh( new THREE.BoxBufferGeometry( 0.125, 0.125, 0.125 ), new THREE.MeshBasicMaterial( { color: 0xffffff, opacity: 0.25 } ) ) ]
+        ]
+
+      };
+
+      var pickerGizmos = {
+
+        X: [
+          [ new THREE.Mesh( new THREE.CylinderBufferGeometry( 0.2, 0, 1, 4, 1, false ), THREE.MeshBasicMaterial ), [ 0.6, 0, 0 ], [ 0, 0, - Math.PI / 2 ] ]
+        ],
+
+        Y: [
+          [ new THREE.Mesh( new THREE.CylinderBufferGeometry( 0.2, 0, 1, 4, 1, false ), THREE.MeshBasicMaterial ), [ 0, 0.6, 0 ] ]
+        ],
+
+        Z: [
+          [ new THREE.Mesh( new THREE.CylinderBufferGeometry( 0.2, 0, 1, 4, 1, false ), THREE.MeshBasicMaterial ), [ 0, 0, 0.6 ], [ Math.PI / 2, 0, 0 ] ]
+        ],
+
+        XYZ: [
+          [ new THREE.Mesh( new THREE.BoxBufferGeometry( 0.4, 0.4, 0.4 ), THREE.MeshBasicMaterial ) ]
+        ]
+
+      };
+      var handles = new THREE.Object3D();
+      var pickers = new THREE.Object3D();
+//      var planes = new THREE.Object3D();
+
+      elem.add( handles );
+      elem.add( pickers );
+//      elem.add( planes );
+      setupGizmos(handleGizmos,handles);
+      setupGizmos(pickerGizmos,pickers);
+
+      scene.add(elem);
+      scope = {
+        object: elem,
+        size:1,
+        space : 'world',
+        axis : null
+      };
+//      update.apply(elem);
+
+
+    }
+
+    function update() {
+
+      if ( scope.object === undefined ) return;
+
+      scope.object.updateMatrixWorld();
+      worldPosition.setFromMatrixPosition( scope.object.matrixWorld );
+      worldRotation.setFromRotationMatrix( tempMatrix.extractRotation( scope.object.matrixWorld ) );
+
+      camera.updateMatrixWorld();
+      camPosition.setFromMatrixPosition( camera.matrixWorld );
+      camRotation.setFromRotationMatrix( tempMatrix.extractRotation( camera.matrixWorld ) );
+
+      scale = worldPosition.distanceTo( camPosition ) / 6 * scope.size;
+      this.position.copy( worldPosition );
+      this.scale.set( scale, scale, scale );
+
+      eye.copy( camPosition ).sub( worldPosition ).normalize();
+
+      if ( scope.space === "local" ) {
+
+        _gizmo[ _mode ].update( worldRotation, eye );
+
+      } else if ( scope.space === "world" ) {
+
+        _gizmo[ _mode ].update( new THREE.Euler(), eye );
+
+      }
+
+    };
+
+    function genFont(str){
+      // create a canvas element
+      var canvas1 = document.createElement('canvas');
+      var context1 = canvas1.getContext('2d');
+      context1.font = "20px Arial";
+      context1.fillStyle = "rgba(255,0,0,1)";
+      context1.fillText(str, 0,20);
+
+      // canvas contents will be used for a texture
+      var texture1 = new THREE.Texture(canvas1)
+      texture1.needsUpdate = true;
+
+      var material1 = new THREE.MeshBasicMaterial( {map: texture1, side:THREE.DoubleSide } );
+      material1.transparent = true;
+
+      var mesh1 = new THREE.Mesh(
+              new THREE.PlaneGeometry(canvas1.width, canvas1.height),
+              material1
+      );
+      return mesh1;
+    }
+
+    function genAxis(scene){
+
+      var x_geometry = new THREE.PlaneBufferGeometry( 100, 100);
+      var plane_material = new THREE.MeshBasicMaterial( {color: 0xeeff11,wireframe: true} );
+      var x_plane = new THREE.Mesh( x_geometry, plane_material );
+      scene.add( x_plane );
+      var font = genFont('x');
+      font.position.x = 100;
+      font.position.y = -20;
+      scene.add(font);
+
+
+      var y_geometry = new THREE.PlaneBufferGeometry( 100, 100);
+      var plane_material = new THREE.MeshBasicMaterial( {color: 0xff0000,wireframe: true} );
+      var y_plane = new THREE.Mesh( y_geometry, plane_material );
+      y_plane.rotation.x = Math.PI/2;
+      var y_font = genFont('y');
+      y_font.position.x = 100;
+      y_font.position.z = -20;
+      y_font.rotation.x = Math.PI/2;
+
+      scene.add(y_font);
+      scene.add( y_plane );
+
+
+      var z_geometry = new THREE.PlaneBufferGeometry( 100, 100);
+      var plane_material = new THREE.MeshBasicMaterial( {color: 0x0000ff,wireframe: true} );
+      var z_plane = new THREE.Mesh( z_geometry, plane_material );
+      z_plane.rotation.y = Math.PI/2;
+      var z_font = genFont('z');
+      z_font.position.z = -100;
+      z_font.position.y = -20;
+      z_font.rotation.y = Math.PI/2;
+      scene.add(z_font);
+      scene.add( z_plane );
+
+
+      var dotGeometry = new THREE.Geometry();
+      dotGeometry.vertices.push(new THREE.Vector3( 0, 0, 0));
+      var dotMaterial = new THREE.PointCloudMaterial( { size: 5, sizeAttenuation: false } );
+      dot = new THREE.PointCloud( dotGeometry, dotMaterial );
+      scene.add( dot );
+    }
+
+//    function trackMouseMove(){
+//      $(document).mousemove(function(event){
+//        var vector = new THREE.Vector3();
+//
+//        vector.set(
+//                ( event.clientX / window.innerWidth ) * 2 - 1,
+//                - ( event.clientY / window.innerHeight ) * 2 + 1,
+//                0.5 );
+//
+//        vector.unproject( camera );
+////        projector.unprojectVector(vector, camera);
+//
+//        var dir = vector.sub( camera.position ).normalize();
+//
+//        var distance = - camera.position.z / dir.z;
+//
+//        var pos = camera.position.clone().add( dir.multiplyScalar( distance ) );
+//
+//        dot.position.copy(pos);
+//
+//        console.debug(pos);
+//
+//      })
+//    }
+
+//    function getPointPosition(event){
+//      var vector = new THREE.Vector3();
+//
+//      vector.set(
+//              ( event.clientX / window.innerWidth ) * 2 - 1,
+//              - ( event.clientY / window.innerHeight ) * 2 + 1,
+//              0.5 );
+//
+//      vector.unproject( camera );
+////        projector.unprojectVector(vector, camera);
+//
+//      var dir = vector.sub( camera.position ).normalize();
+//
+//      var distance = - camera.position.z / dir.z;
+//
+//      var pos = camera.position.clone().add( dir.multiplyScalar( distance ) );
+//
+//      return vector;
+//    }
+
+
+
+//    function drawCubic(){
+//      $(document).mousemove(function(event){
+//
+//        var curPos = getPointPosition(event);
+//        console.debug(curPos);
+//
+//        if(drawing){
+//          var curPos = getPointPosition(event);
+//          var movingVector = curPos.sub(startPos);
+//          currentCube.scale.copy(movingVector);
+//          console.debug('moving vector:',movingVector);
+//          console.debug('currentCube');
+//
+//        }
+//      });
+//
+//      var drawing = false;
+//      var currentCube = null;
+//      var startPos = null;
+//      $(document).mousedown(function(event){
+//        if(event.altKey){
+//
+//          drawing = true;
+//          orbit.enableZoom = false;
+//          orbit.enabled = false;
+//
+//          var geometry = new THREE.BoxBufferGeometry( 5, 5, 5 );
+//          var material = new THREE.MeshBasicMaterial( { color: 0x00ff00,
+//            wireframe: true } );
+//          var cube = new THREE.Mesh( geometry, material );
+//          currentCube = cube;
+//          var curPos = getPointPosition(event);
+//          startPos = curPos;
+//          cube.position.copy(curPos);
+//          scene.add( cube );
+//
+//        }
+//
+//      });
+//
+//
+//      $(document).mouseup(function(event){
+//        drawing = false;
+//        orbit.enableZoom = true;
+//        orbit.enabled = true;
+//      });
+//
+//
+//
+//
+//    }
+
+
+
+//    function updateGroupGeometry( mesh, geometry ) {
+//
+//      mesh.children[ 0 ].geometry.dispose();
+//      mesh.children[ 1 ].geometry.dispose();
+//
+//      mesh.children[ 0 ].geometry = new THREE.WireframeGeometry( geometry );
+//      mesh.children[ 1 ].geometry = geometry;
+//
+//      // these do not update nicely together if shared
+//
+//    }
+
+  </script>
+</html>
