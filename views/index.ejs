@@ -15,13 +15,13 @@
 
   <script>
     var scene = new THREE.Scene();
-
+    var x_plane = null;
     var camera = new THREE.PerspectiveCamera( 75, window.innerWidth/window.innerHeight, 0.1, 10000 );
     var renderer = new THREE.WebGLRenderer();
     renderer.setSize( window.innerWidth, window.innerHeight);
 
     document.body.appendChild( renderer.domElement );
-    camera.position.z = 350;
+    camera.position.z = 450;
 
 
     controls = new THREE.OrbitControls( camera, renderer.domElement );
@@ -31,6 +31,7 @@
 //    trackMouseMove();
     dot = null;
     genAxis(scene);
+    genOuterBox(scene);
     locCubic(scene,camera);
 
     var render = function () {
@@ -79,278 +80,62 @@
           transformControl.attach(dot)
           scene.add( transformControl );
 
-          // Hiding transform situation is a little in a mess :()
-//          transformControl.addEventListener( 'change', function( e ) {
-//
-//            cancelHideTransform();
-//
-//          } );
-//
-//          transformControl.addEventListener( 'mouseDown', function( e ) {
-//
-//            cancelHideTransform();
-//
-//          } );
-//
-//          transformControl.addEventListener( 'mouseUp', function( e ) {
-//
-//            delayHideTransform();
-//
-//          } );
-//
-//          transformControl.addEventListener( 'objectChange', function( e ) {
-//
-////            updateSplineOutline();
-//
-//          } );
-
-//
-//          controls.addEventListener( 'start', function() {
-//
-//            cancelHideTransform();
-//
-//          } );
-//
-//          controls.addEventListener( 'end', function() {
-//
-//            delayHideTransform();
-//
-//          } );
-
-          var hiding;
-
-          function delayHideTransform() {
-
-            cancelHideTransform();
-            hideTransform();
-
-          }
-
-          function hideTransform() {
-
-//            hiding = setTimeout( function() {
-//
-//              transformControl.detach( transformControl.object );
-//
-//            }, 2500 )
-
-          }
-
-          function cancelHideTransform() {
-
-            if ( hiding ) clearTimeout( hiding );
-
-          }
-
         }
-
-//        intersects[ 0 ].object.material.color.set( 0xffffff );
-//
-//        for ( var i = 0; i < intersects.length; i++ ) {
-//
-//
-//        }
 
         renderer.render( scene, camera );
       });
     }
 
 
-//    function genFont(str){
-//      // create a canvas element
-//      var canvas1 = document.createElement('canvas');
-//      var context1 = canvas1.getContext('2d');
-//      context1.font = "20px Arial";
-//      context1.fillStyle = "rgba(255,0,0,1)";
-//      context1.fillText(str, 0,20);
-//
-//      // canvas contents will be used for a texture
-//      var texture1 = new THREE.Texture(canvas1)
-//      texture1.needsUpdate = true;
-//
-//      var material1 = new THREE.MeshBasicMaterial( {map: texture1, side:THREE.DoubleSide } );
-//      material1.transparent = true;
-//
-//      var mesh1 = new THREE.Mesh(
-//              new THREE.PlaneGeometry(canvas1.width, canvas1.height),
-//              material1
-//      );
-//      return mesh1;
-//    }
 
     function genAxis(scene){
 
       var x_geometry = new THREE.PlaneBufferGeometry( 512, 512);
 
-      texture = THREE.ImageUtils.loadTexture( "output/ser002img00001.dcm.jpeg" );
-
-// assuming you want the texture to repeat in both directions:
-//      texture.wrapS = THREE.RepeatWrapping;
-//      texture.wrapT = THREE.RepeatWrapping;
-
-//// how many times to repeat in each direction; the default is (1,1),
-////   which is probably why your example wasn't working
-//      texture.repeat.set( 4, 4 );
+      var texture = THREE.ImageUtils.loadTexture( "output/ser002img00001.dcm.jpeg" );
 
       var plane_material  = new THREE.MeshBasicMaterial({ map : texture });
 
-      var x_plane = new THREE.Mesh( x_geometry, plane_material );
+      x_plane = new THREE.Mesh( x_geometry, plane_material );
       x_plane.material.side = THREE.DoubleSide;
+
+//      var outlineMaterial1 = new THREE.MeshBasicMaterial( { color: 0xff0000, side: THREE.BackSide } );
+//      var outlineMesh1 = new THREE.Mesh( x_geometry, outlineMaterial1 );
+//      outlineMesh1.position = x_geometry.position;
+//      outlineMesh1.scale.multiplyScalar(1.05);
+
+
+      edges = new THREE.EdgesHelper( x_plane, 0x00ff00 );
+//      edges.scale.multiplyScalar(1.0005);
+//      edges.matrixAutoUpdate = true;
+
       scene.add( x_plane );
 
+      scene.add( edges );
 
-
-
-//      var font = genFont('x');
-//      font.position.x = 100;
-//      font.position.y = -20;
-//      scene.add(font);
-
-
-//      var y_geometry = new THREE.PlaneBufferGeometry( 100, 100);
-//      var plane_material = new THREE.MeshBasicMaterial( {color: 0xff0000,wireframe: true} );
-//      var y_plane = new THREE.Mesh( y_geometry, plane_material );
-//      y_plane.rotation.x = Math.PI/2;
-//      var y_font = genFont('y');
-//      y_font.position.x = 100;
-//      y_font.position.z = -20;
-//      y_font.rotation.x = Math.PI/2;
-//
-//      scene.add(y_font);
-//      scene.add( y_plane );
-
-
-//      var z_geometry = new THREE.PlaneBufferGeometry( 100, 100);
-//      var plane_material = new THREE.MeshBasicMaterial( {color: 0x0000ff,wireframe: true} );
-//      var z_plane = new THREE.Mesh( z_geometry, plane_material );
-//      z_plane.rotation.y = Math.PI/2;
-//      var z_font = genFont('z');
-//      z_font.position.z = -100;
-//      z_font.position.y = -20;
-//      z_font.rotation.y = Math.PI/2;
-//      scene.add(z_font);
-//      scene.add( z_plane );
-
-
-//      var dotGeometry = new THREE.Geometry();
-//      dotGeometry.vertices.push(new THREE.Vector3( 0, 0, 0));
-//      var dotMaterial = new THREE.PointCloudMaterial( { size: 10, sizeAttenuation: false } );
-//      dot = new THREE.PointCloud( dotGeometry, dotMaterial );
-//      scene.add( dot );
     }
 
-//    function trackMouseMove(){
-//      $(document).mousemove(function(event){
-//        var vector = new THREE.Vector3();
-//
-//        vector.set(
-//                ( event.clientX / window.innerWidth ) * 2 - 1,
-//                - ( event.clientY / window.innerHeight ) * 2 + 1,
-//                0.5 );
-//
-//        vector.unproject( camera );
-////        projector.unprojectVector(vector, camera);
-//
-//        var dir = vector.sub( camera.position ).normalize();
-//
-//        var distance = - camera.position.z / dir.z;
-//
-//        var pos = camera.position.clone().add( dir.multiplyScalar( distance ) );
-//
-//        dot.position.copy(pos);
-//
-//        console.debug(pos);
-//
-//      })
-//    }
+    function genOuterBox(scene){
+      var geometry = new THREE.BoxGeometry( 512, 512, 28*10 );
+      var material = new THREE.MeshBasicMaterial( {color: 0x00ff00,wireframe:true} );
+      var cube = new THREE.Mesh( geometry, material );
 
-//    function getPointPosition(event){
-//      var vector = new THREE.Vector3();
-//
-//      vector.set(
-//              ( event.clientX / window.innerWidth ) * 2 - 1,
-//              - ( event.clientY / window.innerHeight ) * 2 + 1,
-//              0.5 );
-//
-//      vector.unproject( camera );
-////        projector.unprojectVector(vector, camera);
-//
-//      var dir = vector.sub( camera.position ).normalize();
-//
-//      var distance = - camera.position.z / dir.z;
-//
-//      var pos = camera.position.clone().add( dir.multiplyScalar( distance ) );
-//
-//      return vector;
-//    }
+      var egh = new THREE.EdgesHelper( cube, 0x00ffff );
+      egh.material.linewidth = 1;
+      egh.position.setZ(28*10/2);
+      egh.matrixAutoUpdate = true;
 
+      scene.add( egh );
+    }
 
+    function moveSlide(id){
+      sId = ("00"+id).slice(-2);
+      x_plane.material.map = THREE.ImageUtils.loadTexture( "output/ser002img000"+sId+".dcm.jpeg" );
+      x_plane.material.needsUpdate = true;
+      x_plane.position.setZ(id*10);
 
-//    function drawCubic(){
-//      $(document).mousemove(function(event){
-//
-//        var curPos = getPointPosition(event);
-//        console.debug(curPos);
-//
-//        if(drawing){
-//          var curPos = getPointPosition(event);
-//          var movingVector = curPos.sub(startPos);
-//          currentCube.scale.copy(movingVector);
-//          console.debug('moving vector:',movingVector);
-//          console.debug('currentCube');
-//
-//        }
-//      });
-//
-//      var drawing = false;
-//      var currentCube = null;
-//      var startPos = null;
-//      $(document).mousedown(function(event){
-//        if(event.altKey){
-//
-//          drawing = true;
-//          orbit.enableZoom = false;
-//          orbit.enabled = false;
-//
-//          var geometry = new THREE.BoxBufferGeometry( 5, 5, 5 );
-//          var material = new THREE.MeshBasicMaterial( { color: 0x00ff00,
-//            wireframe: true } );
-//          var cube = new THREE.Mesh( geometry, material );
-//          currentCube = cube;
-//          var curPos = getPointPosition(event);
-//          startPos = curPos;
-//          cube.position.copy(curPos);
-//          scene.add( cube );
-//
-//        }
-//
-//      });
-//
-//
-//      $(document).mouseup(function(event){
-//        drawing = false;
-//        orbit.enableZoom = true;
-//        orbit.enabled = true;
-//      });
-//
-//
-//
-//
-//    }
+    }
 
-
-
-//    function updateGroupGeometry( mesh, geometry ) {
-//
-//      mesh.children[ 0 ].geometry.dispose();
-//      mesh.children[ 1 ].geometry.dispose();
-//
-//      mesh.children[ 0 ].geometry = new THREE.WireframeGeometry( geometry );
-//      mesh.children[ 1 ].geometry = geometry;
-//
-//      // these do not update nicely together if shared
-//
-//    }
 
   </script>
 </html>

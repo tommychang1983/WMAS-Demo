@@ -634,11 +634,31 @@
 			"scale": new THREE.TransformGizmoScale()
 		};
 
-		var geometry = new THREE.BoxBufferGeometry( 1,1,1);
-		var material = new THREE.MeshBasicMaterial( { color: 0xff0000,wireframe: true} );
-		this.annCubic = new THREE.Mesh( geometry, material );
+		var geometry = new THREE.CubeGeometry( 1,1,1);
+		// var material = new THREE.MeshBasicMaterial( { color: 0xff0000,wireframe: true} );
+		// each cube side gets another color
 
+		var texture = THREE.ImageUtils.loadTexture( "output/ser002img00001.dcm.jpeg" );
+		var cubeMaterials = [
+			new THREE.MeshBasicMaterial({color:0x33AA55, transparent:true, opacity:0}),
+			new THREE.MeshBasicMaterial({color:0x55CC00, transparent:true, opacity:0}),
+			new THREE.MeshBasicMaterial({color:0x000000, transparent:true, opacity:0}),
+			new THREE.MeshBasicMaterial({color:0x000000, transparent:true, opacity:0}),
+			new THREE.MeshBasicMaterial({ map : texture }),
+			new THREE.MeshBasicMaterial({color:0x5555AA, transparent:true, opacity:0}),
+		];
+
+		var cubeMaterial = new THREE.MeshFaceMaterial(cubeMaterials);
+
+
+		this.annCubic = new THREE.Mesh( geometry, cubeMaterial );
+		this.annCubic.material.side = THREE.DoubleSide;
 		scene.add(this.annCubic);
+
+
+		var egh = new THREE.EdgesHelper( this.annCubic, 0x00ff00 );
+		scene.add(egh);
+
 
 		for ( var type in _gizmo ) {
 
@@ -955,6 +975,14 @@
 					scope.object.position.copy( oldPosition );
 					scope.object.position.add( point );
 
+					if(Math.floor(Math.abs(point.z)/10)>0){
+						var position = point.z / Math.abs(point.z);
+						point.z = Math.floor(point.z/10)*10;
+
+					}else if(Math.abs(point.z)>0){
+						point.z = 0;
+					}
+
 					if(event.altKey){
 						if(oldMove == null) {
 							oldMove = (new THREE.Vector3()).copy(scope.annCubic.position);
@@ -963,7 +991,6 @@
 							var move = new THREE.Vector3();
 							move.copy(point);
 							scope.annCubic.position.copy(oldMove).add(move);
-							console.log('move:',move);
 						}
 					}else{
 						if(oldMove == null) {
@@ -974,6 +1001,16 @@
 							var move = new THREE.Vector3();
 							move.copy(point);
 							move.sub(oldMove);
+							// var moveZ = Math.abs(move.z);
+							// var positionZ = move.z/moveZ;
+							// if(moveZ>0 && moveZ<10){
+							// 	return;
+							// }else if(!isNaN(positionZ)){
+							// 	move.z = 10*positionZ;
+							// 	point.z = oldMove.z+10;
+							// }
+                            //
+							// console.log('point:',point,'move:',move,scope.annCubic.scale);
 
 							scope.annCubic.scale.add(move);
 
@@ -982,6 +1019,24 @@
 							pos.divide(new THREE.Vector3(2,2,2));
 							//
 							scope.annCubic.position.add(pos);
+
+							texture = scope.annCubic.material.materials[4].map;
+							var textureW = 512;
+							var textureH = 512;
+							var cubicW = scope.annCubic.scale.x;
+							var cubicH = scope.annCubic.scale.y;
+							var offsetW = 256+(scope.annCubic.position.x - cubicW/2);
+							var offsetH = 256+(scope.annCubic.position.y - cubicH/2);
+							// console.log(`textureW ${textureW};textureH: ${textureH};cubicW:${cubicW};cubicH:${cubicH};
+							// offsetW:${offsetW};offsetH:${offsetH};positionx:${scope.annCubic.position.x};positiony:${scope.annCubic.position.y}`);
+
+							texture.repeat.x = cubicW / textureW;
+							texture.repeat.y = cubicH / textureH;
+
+							texture.offset.x = (offsetW/cubicW)* texture.repeat.x;
+							texture.offset.y = (offsetH/cubicH)* texture.repeat.y;
+
+                            //
 
 							oldMove = point.clone();
 						}
