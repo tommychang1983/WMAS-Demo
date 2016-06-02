@@ -10,6 +10,7 @@
   </body>
   <script src="/javascripts/jquery-2.2.4.min.js"></script>
   <script src="/javascripts/three.min.js"></script>
+  <script src="https://cdn.rawgit.com/dataarts/dat.gui/master/build/dat.gui.min.js"></script>
   <script src="/javascripts/OrbitControls.js"></script>
   <script src="/javascripts/TransformControls.js"></script>
 
@@ -41,6 +42,11 @@
 
     render();
 
+    var gui_config = {
+      index : 1
+    }
+
+    gen_gui();
     function locCubic(scene,camera){
       var raycaster = new THREE.Raycaster();
       var mouse = new THREE.Vector2();
@@ -116,13 +122,13 @@
     }
 
     function genOuterBox(scene){
-      var geometry = new THREE.BoxGeometry( 512, 512, 28*10 );
+      var geometry = new THREE.BoxGeometry( 512, 512, (28-1)*10 );
       var material = new THREE.MeshBasicMaterial( {color: 0x00ff00,wireframe:true} );
       var cube = new THREE.Mesh( geometry, material );
 
       var egh = new THREE.EdgesHelper( cube, 0x00ffff );
       egh.material.linewidth = 1;
-      egh.position.setZ(28*10/2);
+      egh.position.setZ((28-1)*10/2);
       egh.matrixAutoUpdate = true;
 
       scene.add( egh );
@@ -132,7 +138,15 @@
       sId = ("00"+id).slice(-2);
       x_plane.material.map = THREE.ImageUtils.loadTexture( "output/ser002img000"+sId+".dcm.jpeg" );
       x_plane.material.needsUpdate = true;
-      x_plane.position.setZ(id*10);
+      x_plane.position.setZ((id-1)*10);
+
+    }
+    function gen_gui(){
+      var gui = new dat.GUI();
+      var idxControler = gui.add(gui_config,"index",1,28).step(1);
+      idxControler.onChange(function(value){
+        moveSlide(value);
+      })
 
     }
 
