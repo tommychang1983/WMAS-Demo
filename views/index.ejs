@@ -45,7 +45,8 @@
     var gui_config = {
       index : 1,
       move:false,
-      clear:false
+      clear:false,
+      hide:false
     }
     gen_gui();
 
@@ -127,6 +128,22 @@
 
       scene.add( edges );
 
+      $(document).keydown(function(event){
+        key = event.which;
+        if(key == 40 && gui_config.index <28){
+          //down
+          gui_config.index = gui_config.index+1
+          moveSlide(gui_config.index);
+        }else if(key ==38 && gui_config.index >1){
+          //up
+          gui_config.index = gui_config.index - 1;
+          moveSlide(gui_config.index);
+        }
+        event.preventDefault();
+        event.stopPropagation();
+
+      });
+
     }
 
     function genOuterBox(scene){
@@ -154,6 +171,7 @@
       var idxController = gui.add(gui_config,"index",1,28).step(1).listen();
       var moveController = gui.add(gui_config,"move").listen();
       var clearController = gui.add(gui_config,"clear").listen();
+      var hideController = gui.add(gui_config,"hide").listen();
       idxController.onChange(function(value){
         moveSlide(value);
       })
@@ -164,8 +182,19 @@
             scene.remove(cubicObjects[oid]);
           }
 
-          value = false;
+          gui_config.clear = false;
 
+        }
+      })
+      hideController.onChange(function(value){
+        if(value == true){
+          for(oid in cubicObjects){
+            cubicObjects[oid].visible = false;
+          }
+        }else{
+          for(oid in cubicObjects){
+            cubicObjects[oid].visible = true;
+          }
         }
       })
 

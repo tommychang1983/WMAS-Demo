@@ -645,7 +645,7 @@
 			new THREE.MeshBasicMaterial({color:0x55CC00, transparent:true, opacity:0}),
 			new THREE.MeshBasicMaterial({color:0x000000, transparent:true, opacity:0}),
 			new THREE.MeshBasicMaterial({color:0x000000, transparent:true, opacity:0}),
-			new THREE.MeshBasicMaterial({ map : texture }),
+			new THREE.MeshBasicMaterial({color:0x5555AA, transparent:true, opacity:0}),
 			new THREE.MeshBasicMaterial({color:0x5555AA, transparent:true, opacity:0}),
 		];
 
