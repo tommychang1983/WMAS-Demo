@@ -657,8 +657,9 @@
 		scene.add(this.annCubic);
 
 
-		var egh = new THREE.EdgesHelper( this.annCubic, 0x00ff00 );
-		scene.add(egh);
+
+		this.egh = new THREE.EdgesHelper( this.annCubic, 0x00ff00 );
+		scene.add(this.egh);
 
 
 		for ( var type in _gizmo ) {
@@ -993,7 +994,7 @@
 						point.z = 28*10;
 					}
 
-					if(event.altKey){
+					if(event.altKey || gui_config.move){
 						if(oldMove == null) {
 							oldMove = (new THREE.Vector3()).copy(scope.annCubic.position);
 							// scope.annCubic.scale = new THREE.Vector3();
@@ -1002,21 +1003,7 @@
 							move.copy(point);
 							scope.annCubic.position.copy(oldMove).add(move);
 							updateObject(scope.annCubic);
-							// texture = scope.annCubic.material.materials[4].map;
-							// var textureW = 512;
-							// var textureH = 512;
-							// var cubicW = scope.annCubic.scale.x;
-							// var cubicH = scope.annCubic.scale.y;
-							// var offsetW = 256+(scope.annCubic.position.x - cubicW/2);
-							// var offsetH = 256+(scope.annCubic.position.y - cubicH/2);
-							// // console.log(`textureW ${textureW};textureH: ${textureH};cubicW:${cubicW};cubicH:${cubicH};
-							// // offsetW:${offsetW};offsetH:${offsetH};positionx:${scope.annCubic.position.x};positiony:${scope.annCubic.position.y}`);
-                            //
-							// texture.repeat.x = cubicW / textureW;
-							// texture.repeat.y = cubicH / textureH;
-                            //
-							// texture.offset.x = (offsetW/cubicW)* texture.repeat.x;
-							// texture.offset.y = (offsetH/cubicH)* texture.repeat.y;
+
 						}
 
 					}else{
@@ -1291,7 +1278,8 @@
 			var sId = ("00"+id).slice(-2);
 			object.material.materials[4].map = THREE.ImageUtils.loadTexture( "output/ser002img000"+sId+".dcm.jpeg" );
 			object.material.needsUpdate = true;
-			moveSlide(id)
+			moveSlide(id);
+			gui_config.index = id;
 		}
 
 	};

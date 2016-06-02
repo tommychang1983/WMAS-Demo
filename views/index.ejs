@@ -22,7 +22,7 @@
     renderer.setSize( window.innerWidth, window.innerHeight);
 
     document.body.appendChild( renderer.domElement );
-    camera.position.z = 450;
+    camera.position.z = 650;
 
 
     controls = new THREE.OrbitControls( camera, renderer.domElement );
@@ -43,10 +43,14 @@
     render();
 
     var gui_config = {
-      index : 1
+      index : 1,
+      move:false,
+      clear:false
     }
-
     gen_gui();
+
+    var cubicObjects = [];
+
     function locCubic(scene,camera){
       var raycaster = new THREE.Raycaster();
       var mouse = new THREE.Vector2();
@@ -85,6 +89,10 @@
 
           transformControl.attach(dot)
           scene.add( transformControl );
+          cubicObjects.push(transformControl);
+//          cubicObjects.push(dot);
+          cubicObjects.push(transformControl.annCubic);
+          cubicObjects.push(transformControl.egh);
 
         }
 
@@ -143,9 +151,22 @@
     }
     function gen_gui(){
       var gui = new dat.GUI();
-      var idxControler = gui.add(gui_config,"index",1,28).step(1);
-      idxControler.onChange(function(value){
+      var idxController = gui.add(gui_config,"index",1,28).step(1).listen();
+      var moveController = gui.add(gui_config,"move").listen();
+      var clearController = gui.add(gui_config,"clear").listen();
+      idxController.onChange(function(value){
         moveSlide(value);
+      })
+
+      clearController.onChange(function(value){
+        if(value == true){
+          for(oid in cubicObjects){
+            scene.remove(cubicObjects[oid]);
+          }
+
+          value = false;
+
+        }
       })
 
     }
