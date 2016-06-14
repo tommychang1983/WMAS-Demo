@@ -19,6 +19,7 @@
     var x_plane = null;
     var camera = new THREE.PerspectiveCamera( 75, window.innerWidth/window.innerHeight, 0.1, 10000 );
     var renderer = new THREE.WebGLRenderer();
+    var slidesNum = 32;
     renderer.setSize( window.innerWidth, window.innerHeight);
 
     document.body.appendChild( renderer.domElement );
@@ -101,7 +102,40 @@
       });
     }
 
+    function restoreCubic(){
 
+//        pos = new THREE.Vector3(37.8,29.9,85);
+//        scale = new THREE.Vector3(52.2,49.8,31);
+//      pos = new THREE.Vector3(-183.24929296,110.331193433,245);
+//      scale = new THREE.Vector3(-43.26733-1,-56.8117-1,111-1);
+      pos = new THREE.Vector3(-183.24929296,110.331193433,110);
+      scale = new THREE.Vector3(-44.26733,-57.8117,-160);
+        var transformControl = new THREE.TransformControls( camera, renderer.domElement );
+
+        var dotGeometry = new THREE.Geometry();
+//        dotGeometry.vertices.push(new THREE.Vector3(64.7, 55.5, 110));
+        dotGeometry.vertices.push(new THREE.Vector3(0, 0, 0));
+        var dotMaterial = new THREE.PointCloudMaterial( { size: 1, sizeAttenuation: false} );
+        dot = new THREE.PointCloud( dotGeometry, dotMaterial );
+
+        dotPos = pos.clone();
+        dotPos.add(scale.clone().divide(new THREE.Vector3(2,2,2)));
+
+        dot.position.copy(dotPos);
+        scene.add( dot );
+        transformControl.attach(dot);
+
+        transformControl.setAnnCubic(pos,scale);
+
+        scene.add( transformControl );
+        cubicObjects.push(transformControl);
+//          cubicObjects.push(dot);
+        cubicObjects.push(transformControl.annCubic);
+        cubicObjects.push(transformControl.egh);
+
+    }
+
+    restoreCubic();
 
     function genAxis(scene){
 
@@ -130,7 +164,7 @@
 
       $(document).keydown(function(event){
         key = event.which;
-        if(key == 40 && gui_config.index <28){
+        if(key == 40 && gui_config.index <slidesNum){
           //down
           gui_config.index = gui_config.index+1
           moveSlide(gui_config.index);
@@ -147,20 +181,20 @@
     }
 
     function genOuterBox(scene){
-      var geometry = new THREE.BoxGeometry( 512, 512, (28-1)*10 );
+      var geometry = new THREE.BoxGeometry( 512, 512, (slidesNum-1)*10 );
       var material = new THREE.MeshBasicMaterial( {color: 0x00ff00,wireframe:true} );
       var cube = new THREE.Mesh( geometry, material );
 
       var egh = new THREE.EdgesHelper( cube, 0x00ffff );
       egh.material.linewidth = 1;
-      egh.position.setZ((28-1)*10/2);
+      egh.position.setZ((slidesNum-1)*10/2);
       egh.matrixAutoUpdate = true;
 
       scene.add( egh );
     }
 
     function moveSlide(id){
-      sId = ("00"+id).slice(-2);
+      sId = ("00"+parseInt(id)).slice(-2);
       x_plane.material.map = THREE.ImageUtils.loadTexture( "output/ser002img000"+sId+".dcm.jpeg" );
       x_plane.material.needsUpdate = true;
       x_plane.position.setZ((id-1)*10);
@@ -168,7 +202,7 @@
     }
     function gen_gui(){
       var gui = new dat.GUI();
-      var idxController = gui.add(gui_config,"index",1,28).step(1).listen();
+      var idxController = gui.add(gui_config,"index",1,slidesNum).step(1).listen();
       var moveController = gui.add(gui_config,"move").listen();
       var clearController = gui.add(gui_config,"clear").listen();
       var hideController = gui.add(gui_config,"hide").listen();

@@ -776,6 +776,17 @@
 
 		};
 
+		this.getAnnCubic = function (){
+			return this.annCubic;
+
+		}
+		this.setAnnCubic = function (position, scale){
+			this.annCubic.position.copy(position);
+			this.annCubic.scale.copy(scale);
+			this.update();
+			updateObject(this.annCubic);
+		}
+
 		this.getMode = function () {
 
 			return _mode;
@@ -990,8 +1001,8 @@
 						point.z = 1*10;
 					}else if(point.z<0){
 						point.z = 0;
-					}else if(point.z>28*10){
-						point.z = 28*10;
+					}else if(point.z>slidesNum*10){
+						point.z = slidesNum*10;
 					}
 
 					if(event.altKey || gui_config.move){
@@ -1047,7 +1058,11 @@
 								updateObjectMaterial(scope.annCubic,id);
 								updateObject(scope.annCubic);
 
-								console.log(`id: ${id};position:${scope.annCubic.position.z}; scale: ${scope.annCubic.scale.z};point: ${point.z}; oldMove: ${oldMove.z};`);
+								console.log(`id: ${id};annCubic:position:x:${scope.annCubic.position.x},y:${scope.annCubic.position.y},\
+								z:${scope.annCubic.position.z}; scale:x: ${scope.annCubic.scale.x};y: ${scope.annCubic.scale.y}; z:${scope.annCubic.scale.z};\
+								point: ${point.z}; oldMove: ${oldMove.z};\
+								object: x:${scope.object.position.x};y:${scope.object.position.y};z:${scope.object.position.z}\
+								object.scale:x:${scope.object.scale.x};y:${scope.object.scale.y};z:${scope.object.scale.z};`);
 							}else if(point.z ==0){
 
 								updateObject(scope.annCubic);
@@ -1227,6 +1242,15 @@
 
 			if ( _dragging && ( scope.axis !== null ) ) {
 
+				var fixPoint = new THREE.Vector3();
+				fixPoint.copy(scope.annCubic.position);
+				var length = new THREE.Vector3();
+				length.copy(scope.annCubic.scale);
+				length.divide(new THREE.Vector3(2,2,2));
+				fixPoint.add(length);
+				scope.object.position.copy(fixPoint);
+				scope.update();
+
 				mouseUpEvent.mode = _mode;
 				scope.dispatchEvent( mouseUpEvent )
 
@@ -1253,7 +1277,7 @@
 		}
 
 		function updateObject(object){
-
+/*
 			texture = object.material.materials[4].map;
 			var textureW = 512;
 			var textureH = 512;
@@ -1269,15 +1293,15 @@
 
 			texture.offset.x = (offsetW/cubicW)* texture.repeat.x;
 			texture.offset.y = (offsetH/cubicH)* texture.repeat.y;
-
+*/
 		}
 
 		function updateObjectMaterial(object,id){
 			// var id = Math.floor(object.scale.z/10)+1;
 
 			var sId = ("00"+id).slice(-2);
-			object.material.materials[4].map = THREE.ImageUtils.loadTexture( "output/ser002img000"+sId+".dcm.jpeg" );
-			object.material.needsUpdate = true;
+			// object.material.materials[4].map = THREE.ImageUtils.loadTexture( "output/ser002img000"+sId+".dcm.jpeg" );
+			// object.material.needsUpdate = true;
 			moveSlide(id);
 			gui_config.index = id;
 		}
